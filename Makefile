@@ -16,16 +16,16 @@ show-%: %.dat
 TRIES=64
 
 delay1-%tap0$(TRIES).dat: $(TARGET)
-	./$(TARGET) -d1 -t$* -n$(TRIES) -o 'delay1-$*tap-%03d.dat'
+	./$(TARGET) -d1 -t$* -n$(TRIES) -o 'delay1-$*tap%03d.dat'
 
 delay2-%tap0$(TRIES).dat: $(TARGET)
-	./$(TARGET) -d2 -t$* -n$(TRIES) -o 'delay2-$*tap-%03d.dat'
+	./$(TARGET) -d2 -t$* -n$(TRIES) -o 'delay2-$*tap%03d.dat'
 
 delay4-%tap0$(TRIES).dat: $(TARGET)
-	./$(TARGET) -d4 -t$* -n$(TRIES) -o 'delay4-$*tap-%03d.dat'
+	./$(TARGET) -d4 -t$* -n$(TRIES) -o 'delay4-$*tap%03d.dat'
 
 delay6-%tap0$(TRIES).dat: $(TARGET)
-	./$(TARGET) -d6 -t$* -n$(TRIES) -o 'delay6-$*tap-%03d.dat'
+	./$(TARGET) -d6 -t$* -n$(TRIES) -o 'delay6-$*tap%03d.dat'
 
 delay8-%tap0$(TRIES).dat: $(TARGET)
-	./$(TARGET) -d8 -t$* -n$(TRIES) -o 'delay8-$*tap-%03d.dat'
+	./$(TARGET) -d8 -t$* -n$(TRIES) -o 'delay8-$*tap%03d.dat'
