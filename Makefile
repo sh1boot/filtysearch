@@ -1,31 +1,62 @@
 CFLAGS=-O3 -pedantic -std=c99 -Wall -ffast-math -lm -lsndfile -lfftw3
 TARGET=filtysearch
+WIDTH=512
+HEIGHT=384
 
 $(TARGET): $(TARGET).c
 	$(CC) $< $(CFLAGS) -o $@
 
 clean:
-	rm -f $(TARGET) *.o
+	rm -f $(TARGET) *.o *.dat
+
+example: show-delay2-6tap016
+
+%.svg: %.dat
+	echo "set terminal svg size $(WIDTH),$(HEIGHT); set output '$@';" \
+		"set xlabel 'frequency (Hz)' ;" \
+		"set ylabel 'dB' ;" \
+		"set yrange [-20:30] ;" \
+		"set y2label 'badness' ;" \
+		"set y2range [0:10] ;" \
+		"set y2tics 0,1 ;" \
+		"plot '$<' using 1:2 with lines title 'actual'," \
+			" '$<' using 1:3 with lines title 'ideal'," \
+			" '$<' using 1:(10**((\$$2-\$$3)/20)) axes x1y2 with lines title 'badness';" \
+			"pause mouse keypress" | gnuplot
 
 %.png: %.dat
-	echo "set terminal png ; set output '$@'; plot '$<' using 1:2 with lines, '$<' using 1:3 with lines" | gnuplot
+	echo "set terminal png size $(WIDTH),$(HEIGHT) ; set output '$@';" \
+		"set xlabel 'frequency (Hz)' ;" \
+		"set ylabel 'dB' ;" \
+		"set yrange [-20:30] ;" \
+		"set y2label 'badness' ;" \
+		"set y2range [0:10] ;" \
+		"set y2tics 0,1 ;" \
+		"plot '$<' using 1:2 with lines title 'actual'," \
+			" '$<' using 1:3 with lines title 'ideal'," \
+			" '$<' using 1:(10**((\$$2-\$$3)/20)) axes x1y2 with lines title 'badness';" \
+			"pause mouse keypress" | gnuplot
 
 show-%: %.dat
-	echo "set yrange [-15:30] ; plot '$<' using 1:2 with lines, '$<' using 1:3 with lines, '$<' using 1:(5*10**((\$$2-\$$3)/20)) with lines ; pause mouse keypress" | gnuplot
+	echo "" \
+		"set xlabel 'frequency (Hz)' ;" \
+		"set ylabel 'dB' ;" \
+		"set yrange [-20:30] ;" \
+		"set y2label 'badness' ;" \
+		"set y2range [0:10] ;" \
+		"set y2tics 0,1 ;" \
+		"plot '$<' using 1:2 with lines title 'actual'," \
+			" '$<' using 1:3 with lines title 'ideal'," \
+			" '$<' using 1:(10**((\$$2-\$$3)/20)) axes x1y2 with lines title 'badness';" \
+			"pause mouse keypress" | gnuplot
 
-TRIES=64
+define make-foo
+delay$1-$2tap%.dat: $(TARGET)
+	./$(TARGET) -d$1 -t$2 -n$$* -o 'delay$1-$2tap%03d.dat'
+endef
 
-delay1-%tap0$(TRIES).dat: $(TARGET)
-	./$(TARGET) -d1 -t$* -n$(TRIES) -o 'delay1-$*tap%03d.dat'
+.SECONDARY:
 
-delay2-%tap0$(TRIES).dat: $(TARGET)
-	./$(TARGET) -d2 -t$* -n$(TRIES) -o 'delay2-$*tap%03d.dat'
-
-delay4-%tap0$(TRIES).dat: $(TARGET)
-	./$(TARGET) -d4 -t$* -n$(TRIES) -o 'delay4-$*tap%03d.dat'
-
-delay6-%tap0$(TRIES).dat: $(TARGET)
-	./$(TARGET) -d6 -t$* -n$(TRIES) -o 'delay6-$*tap%03d.dat'
-
-delay8-%tap0$(TRIES).dat: $(TARGET)
-	./$(TARGET) -d8 -t$* -n$(TRIES) -o 'delay8-$*tap%03d.dat'
+$(foreach d,1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16, \
+	$(foreach t,1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16, \
+		$(eval $(call make-foo,$d,$t))))
