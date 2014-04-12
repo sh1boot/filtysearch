@@ -14,6 +14,7 @@ typedef struct { int f; float p; } winpt_t;
 
 static const winpt_t ath[] =
 {
+    { -10, 76.55 },
     { 0, 76.55 },
     { 20, 76.55 },
     { 25, 65.62 },
@@ -46,6 +47,7 @@ static const winpt_t ath[] =
     { 12500, 8.38 },
     { 16000, 25 },
     { 18000, 40 },
+    { 96000, 40 },
     { 192000, 40 },
 };
 
@@ -95,11 +97,16 @@ int main(int argc, char *argv[])
     for (i = 0; i < N / 2; i++)
     {
         float f = i * fs / N;
-        while (winptr[1].f <= f)
+        while (winptr[1].f < f)
             winptr++;
-        float r = winptr[0].p + (winptr[1].p - winptr[0].p)
-                        * (f - winptr[0].f)
-                        / (winptr[1].f - winptr[0].f);
+        float t = (f - winptr[0].f) / (winptr[1].f - winptr[0].f);
+        float h00 = (1 + 2 * t) * (1 - t) * (1 - t);
+        float h10 = t * (1 - t) * (1 - t);
+        float h01 = t * t * (3 - 2 * t);
+        float h11 = t * t * (t - 1);
+        float m0 = (winptr[1].p - winptr[-1].p) * (winptr[1].f - winptr[0].f) / (winptr[1].f - winptr[-1].f);
+        float m1 = (winptr[2].p - winptr[ 0].p) * (winptr[1].f - winptr[0].f) / (winptr[2].f - winptr[ 0].f);
+        float r = h00 * winptr[0].p + h10 * m0 + h01 * winptr[1].p + h11 * m1;
         win[i] = r;
     }
 
@@ -192,7 +199,7 @@ int main(int argc, char *argv[])
                 fprintf(fptr, "# ");
                 for (j = 0; j < delay + taps; j++)
                 {
-                    fprintf(fptr, "%e,", in[j]);
+                    fprintf(fptr, "%g,", in[j]);
                     printf("%f,", in[j]);
                 }
                 fprintf(fptr, "\n");
